@@ -81,6 +81,8 @@ async function handle_request_dollar_api() {
 
 export default class Extension {
     enable() {
+        console.log('Enabling USD-RUB extension...'); // Логирование для отладки
+
         panelButton = new St.Bin({
             style_class: 'panel-button',
         });
@@ -99,6 +101,8 @@ export default class Extension {
     }
 
     disable() {
+        console.log('Disabling USD-RUB extension...'); // Логирование для отладки
+
         // Remove the button from the panel
         Main.panel._centerBox.remove_child(panelButton);
 
