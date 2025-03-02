@@ -17,6 +17,11 @@ let panelButtonText;
 let session;
 let dollarQuotation;
 let sourceId = null;
+let previousRate = null; // Для хранения предыдущего значения курса
+
+// Настройки
+const SETTINGS_SCHEMA = 'org.gnome.shell.extensions.usd-rub';
+let settings;
 
 // Handle Requests API for USD-RUB
 async function handle_request_dollar_api() {
@@ -26,8 +31,15 @@ async function handle_request_dollar_api() {
             session = new Soup.Session({ timeout: 10 });
         }
 
-        // API URL for USD-RUB (Центральный Банк России)
-        const apiUrl = 'https://www.cbr-xml-daily.ru/daily_json.js';
+        // Получаем API-ключ из настроек
+        const apiKey = settings.get_string('api-key');
+        if (!apiKey) {
+            console.error('API Key is not set');
+            return;
+        }
+
+        // API URL for USD-RUB (Alpha Vantage)
+        const apiUrl = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=USD&to_currency=RUB&apikey=${apiKey}`;
 
         // Create Soup request
         let message = Soup.Message.new('GET', apiUrl);
@@ -39,16 +51,31 @@ async function handle_request_dollar_api() {
             const body_response = JSON.parse(response);
 
             // Get the value of USD-RUB
-            dollarQuotation = body_response["Valute"]["USD"]["Value"];
-            dollarQuotation = dollarQuotation.toFixed(2); // Округляем до двух знаков после запятой
+            const currentRate = parseFloat(body_response["Realtime Currency Exchange Rate"]["5. Exchange Rate"]).toFixed(2);
 
-            // Set text in Widget
-            panelButtonText = new St.Label({
-                style_class: "cPanelText",
-                text: `(1 USD = ${dollarQuotation} RUB)`,
-                y_align: Clutter.ActorAlign.CENTER,
-            });
-            panelButton.set_child(panelButtonText);
+            // Определяем цвет текста для значения курса (x)
+            let rateColor = 'white'; // По умолчанию белый
+            if (previousRate !== null) {
+                if (currentRate > previousRate) {
+                    rateColor = 'red'; // Курс рубля упал (USD вырос)
+                } else if (currentRate < previousRate) {
+                    rateColor = 'green'; // Курс рубля вырос (USD упал)
+                }
+            }
+            previousRate = currentRate; // Сохраняем текущий курс для следующего сравнения
+
+            // Форматируем текст с цветами
+            const formattedText = `USD = <span color="${rateColor}">${currentRate}</span> <span color="white">RUB</span>`;
+
+            // Устанавливаем текст в виджет
+            if (!panelButtonText) {
+                panelButtonText = new St.Label({
+                    style_class: "cPanelText",
+                    y_align: Clutter.ActorAlign.CENTER,
+                });
+                panelButton.set_child(panelButtonText);
+            }
+            panelButtonText.set_markup(formattedText);
 
             // Finish Soup Session
             session.abort();
@@ -57,16 +84,23 @@ async function handle_request_dollar_api() {
         });
     } catch (error) {
         console.error(`Traceback Error in [handle_request_dollar_api]: ${error}`);
-        panelButtonText = new St.Label({
-            text: "USD = N/A RUB",
-            y_align: Clutter.ActorAlign.CENTER,
-        });
-        panelButton.set_child(panelButtonText);
+        if (!panelButtonText) {
+            panelButtonText = new St.Label({
+                style_class: "cPanelText",
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+            panelButton.set_child(panelButtonText);
+        }
+        panelButtonText.set_text("USD = N/A RUB");
         session.abort();
     }
 }
 
 export default class Extension {
+    constructor() {
+        settings = new Gio.Settings({ schema_id: SETTINGS_SCHEMA });
+    }
+
     enable() {
         panelButton = new St.Bin({
             style_class: "panel-button",
@@ -78,8 +112,9 @@ export default class Extension {
         // Add the button to the panel
         Main.panel._centerBox.insert_child_at_index(panelButton, 0);
 
-        // Update the rate every 5 minutes (300 seconds)
-        sourceId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 300, () => {
+        // Update the rate based on the interval from settings
+        const updateInterval = settings.get_int('update-interval');
+        sourceId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, updateInterval, () => {
             handle_request_dollar_api();
             return GLib.SOURCE_CONTINUE;
         });
