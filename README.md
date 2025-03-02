@@ -11,9 +11,7 @@ Last method is deprecated with the newer versions, just copy extension file to
 ~/.local/share/gnome-shell/extensions/
 ```
 then restart GNOME Shell and run
-```
-gnome-extensions enable usd-try-gshell@arifesat.github.com
-```
+
 To restart GNOME Shell in X11, pressing Alt+F2 to open the Run Dialog and enter restart 
 (or just r). 
 In Wayland Logout and Login again.
