@@ -6,7 +6,7 @@ import Soup from 'gi://Soup';
 import GLib from 'gi://GLib';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
-let panelButton, session, sourceId;
+let panelButton, session, sourceId, panelButtonText;
 
 async function updateRate() {
     try {
@@ -27,14 +27,28 @@ async function updateRate() {
         let rate = parseFloat(response.usd.rub).toFixed(2).replace('.', ',');
         console.log("Current USD Rate:", rate); // Логируем текущий курс
 
-        panelButton.set_child(new St.Label({
-            text: `USD = <span color='white'>${rate} RUB</span>`,
+        // Обновляем текст на панели (в соответствии с вашим примером)
+        if (panelButton.get_child()) {
+            panelButton.get_child().destroy(); // Удаляем старый текст
+        }
+        panelButtonText = new St.Label({
+            style_class: "cPanelText",
+            text: "(USD = " + rate + " RUB)",
             y_align: Clutter.ActorAlign.CENTER,
-            use_markup: true,
-        }));
+        });
+        panelButton.set_child(panelButtonText);
+
     } catch (e) {
         console.error(`Error: ${e.message}`);
-        panelButton.set_child(new St.Label({ text: 'USD = ? RUB', y_align: Clutter.ActorAlign.CENTER }));
+        if (panelButton.get_child()) {
+            panelButton.get_child().destroy(); // Удаляем старый текст
+        }
+        panelButtonText = new St.Label({
+            style_class: "cPanelText",
+            text: "(1 USD = ? RUB)",
+            y_align: Clutter.ActorAlign.CENTER,
+        });
+        panelButton.set_child(panelButtonText);
     }
 }
 
