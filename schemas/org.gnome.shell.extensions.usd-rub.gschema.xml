@@ -1,0 +1,14 @@
+<schemalist>
+  <schema id="org.gnome.shell.extensions.usd-rub" path="/org/gnome/shell/extensions/usd-rub/">
+    <key name="api-key" type="s">
+      <default>''</default>
+      <summary>API Key</summary>
+      <description>API Key for Alpha Vantage</description>
+    </key>
+    <key name="update-interval" type="i">
+      <default>60</default>
+      <summary>Update Interval</summary>
+      <description>Interval in seconds to update the exchange rate</description>
+    </key>
+  </schema>
+</schemalist>
