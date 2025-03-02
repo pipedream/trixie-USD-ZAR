@@ -31,7 +31,7 @@ async function updateRate() {
     } catch (e) {
         console.error(`Error: ${e.message}`);
         panelButton.set_child(new St.Label({ style_class: 'cPanelText', text: '(USD = ? RUB)', y_align: Clutter.ActorAlign.CENTER }));
-        scheduleNextUpdate(5); // Ошибка - повтор через 5 секунд
+        scheduleNextUpdate(7); // Ошибка - повтор через 7 секунд
     }
 }
 
