@@ -27,7 +27,7 @@ async function updateRate() {
     } catch(e) {
         console.error(e);
         updateText('?');
-        if (!tRetry) tRetry = GLib.timeout_add_seconds(0, 30, () => (updateRate(), tRetry = null));
+        if (!tRetry) tRetry = GLib.timeout_add_seconds(0, 5, () => (updateRate(), tRetry = null));
     }
 }
 
