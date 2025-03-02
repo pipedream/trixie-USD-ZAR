@@ -2,12 +2,7 @@ Download via Gnome Extension Store: -
 
 or
 
-cd /tmp && \
-git clone https://github.com/Makev1ch/USD-RUB.git && \
-mv USD-RUB usd-rub@makev1ch.github.com && \
-cp -av usd-rub@makev1ch.github.com ~/.local/share/gnome-shell/extensions/ && \
-gnome-extensions enable usd-rub@makev1ch.github.com && \
-rm -rf usd-rub@makev1ch.github.com
+git clone https://github.com/Makev1ch/USD-RUB.git ~/.local/share/gnome-shell/extensions/usd-rub@makev1ch.github.com && gnome-shell-extension-tool -e usd-rub@makev1ch.github.com && gnome-shell --replace
 
 
 
