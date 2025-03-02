@@ -6,50 +6,88 @@ import Soup from 'gi://Soup';
 import GLib from 'gi://GLib';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
-let panelButton, session, sourceId;
-
-function scheduleNextUpdate(interval) {
-    if (sourceId) {
-        GLib.Source.remove(sourceId);
-        sourceId = null;
+export default class CurrencyExtension {
+    constructor() {
+        // Инициализация свойств класса
+        this._panelButton = null;
+        this._session = null;
+        this._timeoutId = null;
     }
-    sourceId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, interval, () => {
-        updateRate();
-        return GLib.SOURCE_CONTINUE;
-    });
-}
 
-async function updateRate() {
-    try {
-        session ??= new Soup.Session({ timeout: 10 });
-        const message = Soup.Message.new('GET', 'https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=rub');
-        const bytes = await session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
-        const { usd: { rub } } = JSON.parse(new TextDecoder().decode(bytes.get_data()));
-        const rate = parseFloat(rub).toFixed(2).replace('.', ',');
-        panelButton.set_child(new St.Label({ style_class: 'cPanelText', text: `USD = ${rate} RUB`, y_align: Clutter.ActorAlign.CENTER }));
-        scheduleNextUpdate(300); // Успешное обновление - интервал 5 минут
-    } catch (e) {
-        console.error(`Error: ${e.message}`);
-        panelButton.set_child(new St.Label({ style_class: 'cPanelText', text: '(USD = ? RUB)', y_align: Clutter.ActorAlign.CENTER }));
-        scheduleNextUpdate(7); // Ошибка - повтор через 7 секунд
+    _scheduleNextUpdate(interval) {
+        // Удаляем предыдущий таймер, если он существует
+        if (this._timeoutId) {
+            GLib.Source.remove(this._timeoutId);
+            this._timeoutId = null;
+        }
+
+        // Устанавливаем новый таймер
+        this._timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, interval, () => {
+            this._updateRate();
+            return GLib.SOURCE_CONTINUE;
+        });
     }
-}
 
-export default class Extension {
+    async _updateRate() {
+        try {
+            // Инициализация сессии, если она ещё не создана
+            this._session ??= new Soup.Session({ timeout: 10 });
+
+            // Создаем запрос к API
+            const message = Soup.Message.new('GET', 'https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=rub');
+            const bytes = await this._session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
+
+            // Парсим ответ и обновляем текст
+            const { usd: { rub } } = JSON.parse(new TextDecoder().decode(bytes.get_data()));
+            const rate = parseFloat(rub).toFixed(2).replace('.', ',');
+            this._panelButton.set_child(new St.Label({
+                style_class: 'cPanelText',
+                text: `USD = ${rate} RUB`,
+                y_align: Clutter.ActorAlign.CENTER
+            }));
+
+            // Успешное обновление - интервал 5 минут
+            this._scheduleNextUpdate(300);
+        } catch (e) {
+            console.error(`Error: ${e.message}`);
+
+            // Ошибка - показываем "?" и повторяем через 7 секунд
+            this._panelButton.set_child(new St.Label({
+                style_class: 'cPanelText',
+                text: 'soon',
+                y_align: Clutter.ActorAlign.CENTER
+            }));
+            this._scheduleNextUpdate(7);
+        }
+    }
+
     enable() {
-        panelButton = new St.Bin({ style_class: 'panel-button' });
-        Main.panel._centerBox.insert_child_at_index(panelButton, 0);
-        updateRate(); // Первоначальный запрос при включении
+        // Создаем кнопку на панели
+        this._panelButton = new St.Bin({ style_class: 'panel-button' });
+        Main.panel._centerBox.insert_child_at_index(this._panelButton, 0);
+
+        // Первоначальный запрос при включении
+        this._updateRate();
     }
 
     disable() {
-        Main.panel._centerBox.remove_child(panelButton);
-        panelButton?.destroy();
-        if (sourceId) {
-            GLib.Source.remove(sourceId);
-            sourceId = null;
+        // Удаляем кнопку с панели
+        if (this._panelButton) {
+            Main.panel._centerBox.remove_child(this._panelButton);
+            this._panelButton.destroy();
+            this._panelButton = null;
         }
-        session?.abort();
-        session = null;
+
+        // Останавливаем таймер
+        if (this._timeoutId) {
+            GLib.Source.remove(this._timeoutId);
+            this._timeoutId = null;
+        }
+
+        // Закрываем сессию
+        if (this._session) {
+            this._session.abort();
+            this._session = null;
+        }
     }
 }
