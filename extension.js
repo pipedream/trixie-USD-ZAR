@@ -27,7 +27,7 @@ async function updateRate() {
         let rate = parseFloat(response.usd.rub).toFixed(2).replace('.', ',');
         console.log("Current USD Rate:", rate); // Логируем текущий курс
 
-        // Обновляем текст на панели (в соответствии с вашим примером)
+        // Обновляем текст на панели
         if (panelButton.get_child()) {
             panelButton.get_child().destroy(); // Удаляем старый текст
         }
@@ -45,7 +45,7 @@ async function updateRate() {
         }
         panelButtonText = new St.Label({
             style_class: "cPanelText",
-            text: "(1 USD = ? RUB)",
+            text: "(USD = ? RUB)",
             y_align: Clutter.ActorAlign.CENTER,
         });
         panelButton.set_child(panelButtonText);
@@ -56,21 +56,21 @@ export default class Extension {
     enable() {
         panelButton = new St.Bin({ style_class: 'panel-button' });
 
-        // Вставляем элемент в левую часть панели
-        Main.panel._leftBox.insert_child_at_index(panelButton, 0);
+        // Вставляем элемент в центральную часть панели
+        Main.panel._centerBox.insert_child_at_index(panelButton, 0);
 
         // Первоначальный запрос курса
         updateRate();
 
-        // Обновляем курс каждые 24 часа (86400 секунд)
-        sourceId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 86400, () => {
+        // Обновляем курс каждые 300 секунд (или чаще, если API позволяет)
+        sourceId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 300, () => {
             updateRate();
             return GLib.SOURCE_CONTINUE;
         });
     }
 
     disable() {
-        Main.panel._leftBox.remove_child(panelButton);
+        Main.panel._centerBox.remove_child(panelButton);
         if (panelButton) panelButton.destroy();
         if (sourceId) GLib.Source.remove(sourceId);
         if (session) session.abort();
