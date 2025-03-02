@@ -44,18 +44,18 @@ async function handle_request_dollar_api() {
 
             // Determine color based on previous quotation
             let color = 'white';
-if (previousDollarQuotation !== null) {
-    if (parseFloat(dollarQuotation.replace(',', '.')) > parseFloat(previousDollarQuotation.replace(',', '.'))) {
-        color = 'red'; // RUB упал
-    } else {
-        color = 'green'; // RUB вырос
-    }
-}
-previousDollarQuotation = dollarQuotation;
+            if (previousDollarQuotation !== null) {
+                if (parseFloat(dollarQuotation.replace(',', '.')) > parseFloat(previousDollarQuotation.replace(',', '.'))) {
+                    color = 'red'; // RUB fell
+                } else {
+                    color = 'green'; // RUB rose
+                }
+            }
+            previousDollarQuotation = dollarQuotation;
 
             // Set text in Widget
             panelButtonText = new St.Label({
-                style_class : "cPanelText",
+                style_class: "cPanelText",
                 text: `USD = <span color='white'>${dollarQuotation}</span> <span color='${color}'>RUB</span>`,
                 y_align: Clutter.ActorAlign.CENTER,
                 use_markup: true
