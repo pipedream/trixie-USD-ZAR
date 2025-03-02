@@ -1,7 +1,3 @@
-// This extension shows USD to RUB conversion on Gnome panel.
-// Copyright (C) 2023  arfiesat
-// See LICENSE file
-
 'use strict';
 
 import St from 'gi://St';
@@ -28,7 +24,7 @@ async function handle_request_dollar_api() {
         }
 
         // Create body of Soup request
-        let message = Soup.Message.new('GET', 'https://economia.awesomeapi.com.br/last/USD-RUB');
+        let message = Soup.Message.new('GET', 'https://www.cbr-xml-daily.ru/daily_json.js');
 
         // Send Soup request to API Server
         let bytes = await session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
@@ -36,22 +32,20 @@ async function handle_request_dollar_api() {
         const body_response = JSON.parse(response);
 
         // Check if the response contains the expected data
-        if (!body_response || !body_response['USDRUB'] || !body_response['USDRUB']['bid']) {
+        if (!body_response || !body_response['Valute'] || !body_response['Valute']['USD'] || !body_response['Valute']['USD']['Value']) {
             throw new Error('Invalid API response');
         }
 
         // Get the value of Dollar Quotation
-        dollarQuotation = body_response['USDRUB']['bid'];
-        dollarQuotation = dollarQuotation.split('.');
-        dollarQuotation = dollarQuotation[0] + ',' + dollarQuotation[1].substring(0, 2);
+        dollarQuotation = body_response['Valute']['USD']['Value'].toFixed(2).replace('.', ',');
 
         // Determine color based on previous quotation
-        let color = 'white';
+        let color = 'white'; // Default color
         if (previousDollarQuotation !== null) {
             if (parseFloat(dollarQuotation.replace(',', '.')) > parseFloat(previousDollarQuotation.replace(',', '.'))) {
-                color = 'red'; // RUB fell
+                color = 'green'; // Доллар стал дороже (рубль упал)
             } else {
-                color = 'green'; // RUB rose
+                color = 'red'; // Доллар стал дешевле (рубль укрепился)
             }
         }
         previousDollarQuotation = dollarQuotation;
@@ -93,8 +87,8 @@ export default class Extension {
         // Add the button to the panel
         Main.panel._centerBox.insert_child_at_index(panelButton, 0);
 
-        // Set up a periodic update every 30 seconds
-        sourceId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 30, () => {
+        // Set up a periodic update every 24 hours (86400 seconds)
+        sourceId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 86400, () => {
             handle_request_dollar_api();
             return GLib.SOURCE_CONTINUE;
         });
