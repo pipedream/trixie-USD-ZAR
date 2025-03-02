@@ -1,8 +1,7 @@
 {
   "uuid": "usd-rub@makev1ch.github.com",
   "name": "USD to RUB Exchange Rate",
-  "description": "Shows the current USD to RUB exchange rate on the GNOME panel
-This extension uses coingecko services",
+  "description": "Shows the current USD to RUB exchange rate on the GNOME panel This extension uses coingecko services",
   "version": 1,
   "shell-version": ["47"],
   "url": "https://github.com/makev1ch/usd-rub"
