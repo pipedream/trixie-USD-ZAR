@@ -1,39 +1,48 @@
 'use strict';
 
 import St from 'gi://St';
-import Clutter from 'gi://Clutter';
 import Soup from 'gi://Soup';
 import GLib from 'gi://GLib';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
-let panelButton, session, sourceId;
+let panel, session, tUpdate, tRetry;
+
+const updateText = (text) => panel.set_child(new St.Label({
+    style_class: 'cPanelText',
+    text: `USD = ${text} RUB`,
+    y_align: Clutter.ActorAlign.CENTER
+}));
 
 async function updateRate() {
     try {
-        session ??= new Soup.Session({ timeout: 10 });
-        const message = Soup.Message.new('GET', 'https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=rub');
-        const bytes = await session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
-        const { usd: { rub } } = JSON.parse(new TextDecoder().decode(bytes.get_data()));
-        const rate = parseFloat(rub).toFixed(2).replace('.', ',');
-        panelButton.set_child(new St.Label({ style_class: 'cPanelText', text: `USD = ${rate} RUB`, y_align: Clutter.ActorAlign.CENTER }));
-    } catch (e) {
-        console.error(`Error: ${e.message}`);
-        panelButton.set_child(new St.Label({ style_class: 'cPanelText', text: '(USD = ? RUB)', y_align: Clutter.ActorAlign.CENTER }));
+        session ??= new Soup.Session({ timeout: 5 });
+        const msg = Soup.Message.new('GET', 'https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=rub');
+        const data = JSON.parse(new TextDecoder().decode((await session.send_and_read_async(msg, 0, null)).get_data()));
+        
+        if (!data?.usd?.rub) throw new Error('Invalid API response');
+        updateText(parseFloat(data.usd.rub).toFixed(2).replace('.', ','));
+        
+        tRetry = GLib.source_remove(tRetry);
+        if (!tUpdate) tUpdate = GLib.timeout_add_seconds(0, 300, updateRate);
+    } catch(e) {
+        console.error(e);
+        updateText('?');
+        if (!tRetry) tRetry = GLib.timeout_add_seconds(0, 30, () => (updateRate(), tRetry = null));
     }
 }
 
-export default class Extension {
+export default class {
     enable() {
-        panelButton = new St.Bin({ style_class: 'panel-button' });
-        Main.panel._centerBox.insert_child_at_index(panelButton, 0);
+        panel = new St.Bin({ style_class: 'panel-button' });
+        Main.panel._centerBox.insert_child_at_index(panel, 0);
         updateRate();
-        sourceId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 300, () => (updateRate(), GLib.SOURCE_CONTINUE));
+        tUpdate = GLib.timeout_add_seconds(0, 300, updateRate);
     }
-
+    
     disable() {
-        Main.panel._centerBox.remove_child(panelButton);
-        panelButton?.destroy();
-        GLib.Source.remove(sourceId);
+        Main.panel._centerBox.remove_child(panel);
+        [tUpdate, tRetry].forEach(t => t && GLib.source_remove(t));
+        panel?.destroy();
         session?.abort();
     }
 }
