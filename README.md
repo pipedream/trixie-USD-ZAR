@@ -1,16 +1,3 @@
-# Dollar-PKR
-```
-Gnome-Shell v.(3.38, 40, 41, 42, 43, 44, 45, 46, 47) Extension, for conversion of USD to TRY on the center of the top panel.
-```
-This is extension is a modified  version of https://github.com/shoaibzs/Dollar-PKR-43 extension to show USD to TRY instead of USD to PKR. 
-```
-# Licence
-```
-See LICENSE File
-```
-# How to install
-```
-
 Download via Gnome Extension Store: https://extensions.gnome.org/extension/6192/usd-try/
 
 or
