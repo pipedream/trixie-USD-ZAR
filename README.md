@@ -6,7 +6,7 @@ git clone https://github.com/Makev1ch/USD-RUB.git ~/.local/share/gnome-shell/ext
 
 
 
-Last method is deprecated with the newer versions, just copy extension file to
+The command above simply copies the extension to this folder
 ```
 ~/.local/share/gnome-shell/extensions/
 ```
@@ -14,4 +14,5 @@ then restart GNOME Shell and run
 
 To restart GNOME Shell in X11, pressing Alt+F2 to open the Run Dialog and enter restart 
 (or just r). 
+
 In Wayland Logout and Login again.
