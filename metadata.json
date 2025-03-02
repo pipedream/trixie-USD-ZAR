@@ -1,8 +1,8 @@
 {
-    "name": "USD-RUB Rate",
-    "description": "Отображает текущий курс доллара к рублю",
-    "uuid": "usd-rub@makev1ch.github.com",
-    "shell-version": ["47"],
-    "url": "https://github.com/Makev1ch/USD-RUB",
-    "version": 1
+  "uuid": "usd-rub@makev1ch.github.com",
+  "name": "USD to RUB Exchange Rate",
+  "description": "Shows the current USD to RUB exchange rate on the GNOME panel.",
+  "version": 1,
+  "shell-version": ["47"],
+  "url": "https://github.com/makev1ch/usd-rub"
 }
