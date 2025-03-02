@@ -33,7 +33,7 @@ async function updateRate() {
         }
         panelButtonText = new St.Label({
             style_class: "cPanelText",
-            text: "(USD = " + rate + " RUB)",
+            text: "USD = " + rate + " RUB",
             y_align: Clutter.ActorAlign.CENTER,
         });
         panelButton.set_child(panelButtonText);
