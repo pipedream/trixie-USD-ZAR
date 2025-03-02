@@ -1,4 +1,4 @@
-Download via Gnome Extension Store: https://extensions.gnome.org/extension/6192/usd-try/
+Download via Gnome Extension Store: -
 
 or
 
