@@ -6,7 +6,7 @@ import Soup from 'gi://Soup';
 import GLib from 'gi://GLib';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
-let panelButton, session, sourceId, previousRate = null;
+let panelButton, session, sourceId;
 
 async function updateRate() {
     try {
@@ -15,32 +15,10 @@ async function updateRate() {
         const bytes = await session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
         const { usd: { rub } } = JSON.parse(new TextDecoder().decode(bytes.get_data()));
         const rate = parseFloat(rub).toFixed(2).replace('.', ',');
-
-        // Определяем цвет текста в зависимости от изменения курса
-        let color = 'white'; // По умолчанию
-        if (previousRate !== null) {
-            if (rate > previousRate) {
-                color = 'green'; // Курс вырос
-            } else if (rate < previousRate) {
-                color = 'red'; // Курс упал
-            }
-        }
-        previousRate = rate; // Сохраняем текущий курс для следующего сравнения
-
-        // Обновляем текст на панели с цветом
-        panelButton.set_child(new St.Label({
-            style_class: 'cPanelText',
-            text: `USD = <span color="${color}">${rate}</span> RUB`,
-            y_align: Clutter.ActorAlign.CENTER,
-            use_markup: true, // Разрешаем использование HTML-разметки
-        }));
+        panelButton.set_child(new St.Label({ style_class: 'cPanelText', text: `USD = ${rate} RUB`, y_align: Clutter.ActorAlign.CENTER }));
     } catch (e) {
         console.error(`Error: ${e.message}`);
-        panelButton.set_child(new St.Label({
-            style_class: 'cPanelText',
-            text: '(USD = ? RUB)',
-            y_align: Clutter.ActorAlign.CENTER,
-        }));
+        panelButton.set_child(new St.Label({ style_class: 'cPanelText', text: '(USD = ? RUB)', y_align: Clutter.ActorAlign.CENTER }));
     }
 }
 
