@@ -3,6 +3,9 @@
   "name": "USD to RUB Exchange Rate",
   "description": "Shows the current USD to RUB exchange rate on the GNOME panel This extension uses coingecko services",
   "version": 4,
-  "shell-version": ["47, 48"],
+  "shell-version": [
+        "47",
+        "48"
+    ],
   "url": "https://github.com/makev1ch/usd-rub"
 }
