@@ -34,15 +34,15 @@ export default class CurrencyExtension {
             this._session ??= new Soup.Session({ timeout: 10 });
 
             // Создаем запрос к API
-            const message = Soup.Message.new('GET', 'https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=rub');
+            const message = Soup.Message.new('GET', 'https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=zar');
             const bytes = await this._session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null);
 
             // Парсим ответ и обновляем текст
-            const { usd: { rub } } = JSON.parse(new TextDecoder().decode(bytes.get_data()));
-            const rate = parseFloat(rub).toFixed(2).replace('.', ',');
+            const { usd: { zar } } = JSON.parse(new TextDecoder().decode(bytes.get_data()));
+            const rate = parseFloat(zar).toFixed(2).replace('.', ',');
             this._panelButton.set_child(new St.Label({
                 style_class: 'cPanelText',
-                text: `USD = ${rate} RUB`,
+                text: `USD = ${rate} ZAR`,
                 y_align: Clutter.ActorAlign.CENTER
             }));
 
